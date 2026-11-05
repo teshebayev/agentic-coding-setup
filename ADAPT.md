@@ -30,7 +30,8 @@
 - где секреты: `.env*`, ключи, `credentials*`, `secrets/`, kubeconfig — что из этого в `.gitignore`;
 - что опасно запускать: деплой, миграции, прод/стенд, платные API (Makefile, `package.json`, CI, docker-compose);
 - крупнейшие файлы, самые частые фиксы (`git log --oneline | grep -iE 'fix|исправ' | head -30`);
-- установлены ли `jq`, `git`, `sha1sum`, `timeout`, Node ≥ 20 (для OpenSpec).
+- установлены ли `jq`, `git`, `sha1sum`, `timeout`, Node ≥ 20 (для OpenSpec), Claude Code ≥ 2.1.295, плагин superpowers;
+- нет ли в окружении `PYTHONPATH` и других переменных, которые ломают тесты в venv.
 
 ## Шаг 2. Один раунд вопросов пользователю
 
@@ -80,7 +81,7 @@
    (исключение — сгенерированные `openspec-*` и вендоренные скиллы).
 2. **Ссылки:** каждый путь, упомянутый в `CLAUDE.md`, правилах, скиллах и командах, существует.
 3. **`paths:` правил** находят файлы: `git ls-files '<glob>'` для каждого.
-4. **Хуки:** дымовые тесты из инструкций к `guard.sh`, `post-edit.sh`, `stop-tests.sh`; `bash -n scripts/agent/*.sh`.
+4. **Хуки:** дымовые тесты из инструкций к `doctor.sh`, `guard.sh`, `post-edit.sh`, `stop-tests.sh`; `bash -n scripts/agent/*.sh`.
 5. **OpenSpec:** `openspec validate --all` (или `openspec list`) отрабатывает без ошибок на пустом проекте.
 6. **Тесты и линт проекта** зелёные (сетап не должен ничего сломать).
 7. Попроси пользователя перезапустить Claude Code и открыть `/hooks`, `/memory` (видно правила), набрать `/` (видны

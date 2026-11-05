@@ -61,9 +61,17 @@ uv run python -m harness.cli seed-demo    # демо-DWH для MCP-сервер
 
 | Хук | Скрипт | Что делает |
 |---|---|---|
-| PreToolUse | `guard.sh` | **Запрещает** чтение `.env`, `ACCESS.local.md`, `DWH-Tunnel-*`, `external/` и их упоминание в командах (`.env.example` разрешён), `docker compose config` без `--quiet`, правку архива изменений. **Спрашивает** перед `-m live`, `eval.run_control`, `marts apply/test/plan/status/cards` и перед `harness.cli ask/chat` без demo-слоя |
+| SessionStart | `doctor.sh` | Проверяет на старте: инструменты хуков, версии Claude Code и OpenSpec, плагин superpowers, секреты вне `.gitignore`, посторонний `PYTHONPATH`. Всё в порядке — молчит; сессию не блокирует |
+| PreToolUse | `guard.sh` | **Запрещает** чтение секретов (`.env`, `.env.*` кроме примеров, `ACCESS.local.md`, `DWH-Tunnel-*`, `external/`, `*.pem`, `~/.ssh` и т.п.) в том числе шаблонами вроде `.e*`, `git push --force`, `--no-verify`, `curl \| sh`, `rm -r` по широкой цели, правку архива изменений и через Bash, `docker compose config` без `--quiet`. **Спрашивает** перед `git push`, `git reset --hard`, `git clean -f`, `sudo`, обычным `rm -r`, чтением всего дерева, `-m live`, `eval.run_control`, `marts apply/test/plan/status/cards` и `harness.cli ask/chat` без demo-слоя. Сам сбоит закрыто: `onFailure: block` и `exit 2` |
 | PostToolUse | `post-edit.sh` | Для изменённого `.py` запускает ruff (F, E9). Ищет импорт `dwh_analyst_mcp` из `harness/`. Проверяет, что каждый плагин из `base.yml` есть в `dwh.yml`. Замечания передаёт Claude через `additionalContext`, ничего не блокирует |
-| Stop | `stop-tests.sh` | Если `.py` изменились с последнего зелёного прогона, запускает `uv run pytest -q -x` (≈13 с). Красные тесты один раз возвращают Claude к работе |
+| Stop | `stop-tests.sh` | Если файлы, от которых зависят тесты (`.py`, yaml, toml, `uv.lock`), изменились с прошлого прогона, запускает `uv run pytest -q -x` (≈13 с). Работает и без коммитов. Об одном состоянии файлов сообщает один раз и различает красные тесты, таймаут, отсутствие тестов и сбой запуска |
+
+`guard.sh` — страховка от промаха агента, а не граница безопасности: чтение секрета через интерпретатор
+(`python -c …`) или `ls | xargs cat` шаблоны не поймают. `permissions.deny` в `.claude/settings.json` — второй слой для
+`Read`; настоящую границу для Bash даёт только песочница (`sandbox` в настройках).
+
+`settings.json` очищает `PYTHONPATH`: иначе чужие пакеты (например, ROS) подмешиваются в venv и ломают pytest. Если
+проекту `PYTHONPATH` нужен — убери блок `env`.
 
 Если хук мешает в конкретной сессии, его можно отключить через `/hooks` или в `.claude/settings.local.json`
 (этот файл не коммитится). Скрипты проверяются подачей JSON на stdin, например:

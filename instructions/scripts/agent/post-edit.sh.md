@@ -6,6 +6,7 @@
 
 ## Что в файле сейчас (проект «DWH-аналитик»)
 
+- `unset PYTHONPATH`: посторонние пакеты не должны попадать в проверки.
 - Для `.py`: `uv run ruff check --output-format concise <файл>`.
 - Для `harness/*.py`: grep на `import dwh_analyst_mcp` — нарушение границы MCP.
 - Для `harness/config/base.yml|dwh.yml`: `scripts/agent/check_plugin_layers.py`.

@@ -11,8 +11,8 @@
   `/opsx:archive`. Требования трассируются до кода и тестов.
 - **Правила** в `.claude/rules/`: глобальные грузятся всегда, доменные — только когда агент трогает свою область
   кода (`paths:`). `CLAUDE.md` остаётся коротким.
-- **Хуки** (`scripts/agent/`): запрет читать секреты и запускать опасное, «спросить» перед дорогими командами,
-  линтер после каждой правки, тесты при остановке агента (с кэшем зелёного прогона).
+- **Хуки** (`scripts/agent/`): проверка сетапа на старте, запрет читать секреты и запускать опасное (сбой хука блокирует
+  вызов), «спросить» перед дорогими командами, линтер после каждой правки, тесты при остановке агента (с кэшем прогона).
 - **Скиллы и команды**: процедуры проекта, разбор незакоммиченных файлов по субагенту на файл, аудит `CLAUDE.md`,
   субагент-ревьюер одного класса ошибок.
 
@@ -26,7 +26,7 @@ agentic-coding-setup/
 │   ├── CLAUDE.md  GLOSSARY.md  .mcp.json  .gitignore
 │   ├── .claude/         settings.json, settings.local.json, rules/ (17), skills/ (13), commands/ (10), agents/ (1)
 │   ├── .superpowers/    sdd/.gitignore
-│   ├── scripts/agent/   guard.sh, post-edit.sh, stop-tests.sh, uncommitted-files.sh, check_plugin_layers.py
+│   ├── scripts/agent/   doctor.sh, guard.sh, post-edit.sh, stop-tests.sh, uncommitted-files.sh, check_plugin_layers.py
 │   ├── openspec/        config.yaml, specs/, changes/archive/
 │   └── docs/            22-agentic-coding.md (описание сетапа), adr/0001-… (пример ADR)
 ├── instructions/        ← та же структура: instructions/<путь>.md на каждый файл из setup/
@@ -37,7 +37,7 @@ agentic-coding-setup/
 
 ## Что нужно на машине
 
-- Claude Code; плагин **superpowers** (ставится на уровне пользователя через `/plugin`) — его TDD,
+- Claude Code ≥ 2.1.295 (раньше не работает `onFailure: block`); плагин **superpowers** (ставится на уровне пользователя через `/plugin`) — его TDD,
   systematic-debugging и verification работают внутри `/opsx:apply`.
 - Node ≥ 20 и OpenSpec CLI 1.14.3: `npm i -g @fission-ai/openspec@1.14.3`.
 - `bash`, `jq`, `git`, `sha1sum`, `timeout` — для хуков (на macOS `brew install jq coreutils`). Windows — через WSL

@@ -3,6 +3,7 @@
 # Ничего не блокирует: замечания уходят Claude через additionalContext.
 set -uo pipefail
 export PATH="$HOME/.local/bin:$PATH"
+unset PYTHONPATH   # чужой PYTHONPATH (например, ROS) подмешивает в проверки посторонние пакеты
 
 root=${CLAUDE_PROJECT_DIR:-$PWD}
 path=$(jq -r '.tool_input.file_path // .tool_input.notebook_path // ""')

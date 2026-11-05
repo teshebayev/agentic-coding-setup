@@ -93,8 +93,9 @@ Package map: `harness/README.md`.
   `replay-reviewer` before finishing changes to `harness/core|context|llm`. Commands: `/uncommitted-files`,
   `/fix-uncommitted`, `/refactor-claude-md`. `.mcp.json` exposes the demo `dwh-analyst` MCP server
   (run `harness.cli seed-demo` once).
-- Hooks (`.claude/settings.json`, scripts in `scripts/agent/`): a guard blocks secret files and dangerous
-  commands; after edits ruff and layer checks run; on stop the offline test suite runs if `.py` changed.
+- Hooks (`.claude/settings.json`, scripts in `scripts/agent/`): at startup a doctor reports a broken setup; a guard
+  blocks secret files and dangerous commands and fails closed; after edits ruff and layer checks run; on stop the
+  offline tests run if files they depend on changed.
 
 ## Rules (`.claude/rules/`)
 
