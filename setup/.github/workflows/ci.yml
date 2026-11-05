@@ -1,0 +1,52 @@
+# Проверки, которые не зависят от сессии Claude Code: их проходит любой коммит, чей бы он ни был.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+      # --- Адаптация: установка, линт и тесты проекта ---
+      - name: Установка
+        run: uv sync
+      - name: Линт
+        run: uv run ruff check .
+      - name: Офлайн-тесты
+        run: uv run pytest -q
+      # --- конец адаптации ---
+      - name: Тесты хуков
+        run: scripts/agent/test-hooks.sh
+      - name: Артефакты OpenSpec
+        run: npx --yes @fission-ai/openspec@1.14.3 validate --all --strict
+        env:
+          OPENSPEC_TELEMETRY: "0"
+
+  secrets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # секрет мог появиться и исчезнуть в истории
+      # Бинарник, а не gitleaks-action: тому в организациях нужна лицензия. Версия и сумма закреплены.
+      - name: Установка gitleaks
+        env:
+          VERSION: 8.30.1
+          SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+        run: |
+          archive="gitleaks_${VERSION}_linux_x64.tar.gz"
+          curl -sSfLO "https://github.com/gitleaks/gitleaks/releases/download/v${VERSION}/${archive}"
+          echo "${SHA256}  ${archive}" | sha256sum -c -
+          tar xzf "${archive}" gitleaks
+      - name: Поиск секретов в истории
+        run: ./gitleaks git --redact --no-banner .

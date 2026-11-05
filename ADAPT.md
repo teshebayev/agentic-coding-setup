@@ -7,7 +7,7 @@
 Структура архива:
 
 - `setup/` — файлы сетапа ровно в тех путях, где они лежат в корне репозитория (включая скрытые `.claude/`,
-  `.superpowers/`, `.mcp.json`, `.gitignore`).
+  `.superpowers/`, `.github/`, `.mcp.json`, `.gitignore`, `.pre-commit-config.yaml`).
 - `instructions/<путь>.md` — инструкция к каждому файлу из `setup/`: что это, когда подхватывается, что в нём у
   нас, что должно быть у вас, шаги адаптации, связи. **Перед тем как трогать файл — прочитай его инструкцию.**
 - `examples/` — образец полного изменения OpenSpec (proposal, specs, design, tasks). В `openspec/` не копируется.
@@ -63,6 +63,7 @@
 | 9 | Команды | `.claude/commands/{uncommitted-files,fix-uncommitted,refactor-claude-md}.md`, `opsx/apply-sequential.md` | скопировать / подстроить |
 | 10 | Доменные скиллы и субагент | `.claude/skills/{harness-plugin,dwh-playbook,alembic-migration}`, `split-large-tests`, `.claude/agents/replay-reviewer.md`, `.claude/skills/README.md` | заменить своими |
 | 11 | Прочее | `.mcp.json`, `.gitignore`, `.superpowers/sdd/.gitignore`, `.claude/settings.local.json` | по инструкциям |
+| 11а | Проверки вне сессии | `.github/workflows/ci.yml`, `.pre-commit-config.yaml` | подстроить; существующий CI не затирать, а дополнять |
 | 12 | Документы | `GLOSSARY.md`, `docs/adr/`, `CLAUDE.md`, `docs/<agentic-coding>.md` | переписать последними — они описывают итог |
 
 Правила работы:
@@ -81,9 +82,10 @@
    (исключение — сгенерированные `openspec-*` и вендоренные скиллы).
 2. **Ссылки:** каждый путь, упомянутый в `CLAUDE.md`, правилах, скиллах и командах, существует.
 3. **`paths:` правил** находят файлы: `git ls-files '<glob>'` для каждого.
-4. **Хуки:** дымовые тесты из инструкций к `doctor.sh`, `guard.sh`, `post-edit.sh`, `stop-tests.sh`; `bash -n scripts/agent/*.sh`.
+4. **Хуки:** `scripts/agent/test-hooks.sh` даёт «провалено: 0»; `bash -n scripts/agent/*.sh`.
 5. **OpenSpec:** `openspec validate --all` (или `openspec list`) отрабатывает без ошибок на пустом проекте.
-6. **Тесты и линт проекта** зелёные (сетап не должен ничего сломать).
+6. **Тесты и линт проекта** зелёные (сетап не должен ничего сломать). Команды из блока «Адаптация» в `ci.yml` совпадают с
+   `CLAUDE.md` и отрабатывают локально.
 7. Попроси пользователя перезапустить Claude Code и открыть `/hooks`, `/memory` (видно правила), набрать `/` (видны
    `/opsx:*`, `/grill-with-docs`, свои команды).
 
@@ -91,4 +93,4 @@
 
 Таблица «файл → что сделано (скопирован / адаптирован / заменён / удалён / создан)», список вопросов, оставшихся
 открытыми, вывод проверок шага 4, и что пользователю сделать руками (установить superpowers, перезапустить сессию,
-закоммитить).
+закоммитить, `uvx pre-commit install`, запушить ветку и проверить CI, включить защиту `main`).

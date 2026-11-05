@@ -1,0 +1,22 @@
+# Проверки при коммите для всех, не только для Claude Code. Установка: uvx pre-commit install
+# Обход через --no-verify guard.sh агенту запрещает; для людей страховка — job secrets в CI.
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks
+  - repo: local
+    hooks:
+      # --- Адаптация: быстрый линт проекта ---
+      - id: lint
+        name: Линт
+        entry: uv run ruff check --force-exclude
+        language: system
+        types: [python]
+      # --- конец адаптации ---
+      - id: test-hooks
+        name: Тесты хуков
+        entry: scripts/agent/test-hooks.sh
+        language: system
+        pass_filenames: false
+        files: ^(scripts/agent/|\.claude/settings\.json$|\.gitignore$)

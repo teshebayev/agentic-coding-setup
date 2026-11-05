@@ -77,6 +77,20 @@ uv run python -m harness.cli seed-demo    # демо-DWH для MCP-сервер
 (этот файл не коммитится). Скрипты проверяются подачей JSON на stdin, например:
 `echo '{"tool_name":"Read","tool_input":{"file_path":".env"}}' | scripts/agent/guard.sh`.
 
+Сами хуки проверяет `scripts/agent/test-hooks.sh`: таблицы вызовов guard, сценарии stop-tests на поддельном раннере,
+doctor, связность настроек. Новое правило в `guard.sh` — новая строка таблицы: что ловит и что не должно задевать.
+
+## Проверки вне сессии
+
+Хуки работают только внутри сессии Claude Code. Всё остальное закрывают:
+
+| Где | Что |
+|---|---|
+| `.pre-commit-config.yaml` | gitleaks, ruff, тесты хуков при их правке. Установка на машину: `uvx pre-commit install` |
+| `.github/workflows/ci.yml` | ruff, офлайн-тесты, тесты хуков, `openspec validate`, gitleaks по всей истории |
+
+CI действует, только если защита `main` требует его прохождения.
+
 ## Скиллы, команды, субагенты
 
 | Что | Зачем |

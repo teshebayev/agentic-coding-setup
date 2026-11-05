@@ -8,7 +8,7 @@
 
 - **Адаптация:** `required` (инструменты), `openspec_version`, `min_claude`, `want_plugin`, `secret_files`.
 - Проверяет: инструменты хуков; исполняемость скриптов; git-репозиторий; секреты в git или вне `.gitignore`; заданный
-  `PYTHONPATH`; версию OpenSpec; версию Claude Code (ниже 2.1.295 не работает `onFailure: block`); включён ли плагин.
+  `PYTHONPATH`; установлен ли pre-commit, если есть его конфиг; версию OpenSpec; версию Claude Code (ниже 2.1.295 не работает `onFailure: block`); включён ли плагин.
 
 ## Что должно быть в вашем проекте
 

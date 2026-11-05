@@ -13,6 +13,8 @@
   кода (`paths:`). `CLAUDE.md` остаётся коротким.
 - **Хуки** (`scripts/agent/`): проверка сетапа на старте, запрет читать секреты и запускать опасное (сбой хука блокирует
   вызов), «спросить» перед дорогими командами, линтер после каждой правки, тесты при остановке агента (с кэшем прогона).
+- **Проверки вне сессии**: тесты самих хуков (`test-hooks.sh`), pre-commit с gitleaks, CI на GitHub Actions: те же правила
+  для людей и других инструментов.
 - **Скиллы и команды**: процедуры проекта, разбор незакоммиченных файлов по субагенту на файл, аудит `CLAUDE.md`,
   субагент-ревьюер одного класса ошибок.
 
@@ -26,7 +28,9 @@ agentic-coding-setup/
 │   ├── CLAUDE.md  GLOSSARY.md  .mcp.json  .gitignore
 │   ├── .claude/         settings.json, settings.local.json, rules/ (17), skills/ (13), commands/ (10), agents/ (1)
 │   ├── .superpowers/    sdd/.gitignore
-│   ├── scripts/agent/   doctor.sh, guard.sh, post-edit.sh, stop-tests.sh, uncommitted-files.sh, check_plugin_layers.py
+│   ├── scripts/agent/   doctor.sh, guard.sh, post-edit.sh, stop-tests.sh, uncommitted-files.sh, test-hooks.sh, check_plugin_layers.py
+│   ├── .github/         workflows/ci.yml
+│   ├── .pre-commit-config.yaml
 │   ├── openspec/        config.yaml, specs/, changes/archive/
 │   └── docs/            22-agentic-coding.md (описание сетапа), adr/0001-… (пример ADR)
 ├── instructions/        ← та же структура: instructions/<путь>.md на каждый файл из setup/
@@ -40,6 +44,7 @@ agentic-coding-setup/
 - Claude Code ≥ 2.1.295 (раньше не работает `onFailure: block`); плагин **superpowers** (ставится на уровне пользователя через `/plugin`) — его TDD,
   systematic-debugging и verification работают внутри `/opsx:apply`.
 - Node ≥ 20 и OpenSpec CLI 1.14.3: `npm i -g @fission-ai/openspec@1.14.3`.
+- `uv` для `uvx pre-commit install` (или свой способ поставить pre-commit); репозиторий на GitHub для CI.
 - `bash`, `jq`, `git`, `sha1sum`, `timeout` — для хуков (на macOS `brew install jq coreutils`). Windows — через WSL
   или Git Bash, иначе скрипты хуков придётся переписать.
 

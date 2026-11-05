@@ -26,13 +26,8 @@
    `external`. Тот же список — в «никогда» из `testing-runs.md`, `.gitignore`, `permissions.deny` и `secret_files` в `doctor.sh`.
 2. Замени блок «опасные команды проекта»: деплой, `terraform apply`, миграции на общей БД, `kubectl` в прод-контекст,
    `npm publish`, платные API. Блок общих проверок не трогай.
-3. Дымовые тесты (каждый должен дать ожидаемое решение):
-   `echo '{"tool_name":"Read","tool_input":{"file_path":".env"}}' | scripts/agent/guard.sh` → deny;
-   `echo '{"tool_name":"Bash","tool_input":{"command":"cat .e*"}}' | scripts/agent/guard.sh` → deny;
-   `echo '{"tool_name":"Read","tool_input":{"file_path":"README.md"}}' | scripts/agent/guard.sh` → пусто;
-   `echo '{"tool_name":"Bash","tool_input":{"command":"<ваша опасная команда>"}}' | scripts/agent/guard.sh` → ask;
-   `echo 'битый JSON' | scripts/agent/guard.sh; echo $?` → 2.
-4. Проверь, что обычная работа не прерывается: тесты, линт, `git status`, `git commit`, `grep -rn x src/` → пусто.
+3. Каждую новую проверку добавь в таблицу `scripts/agent/test-hooks.sh`: и что ловит, и что не должна задевать. Запусти его:
+   там проверены секреты, разрушительные команды, обычная работа и сбой самого хука.
 
 ## Связи с другими файлами
 

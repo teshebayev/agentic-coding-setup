@@ -34,6 +34,11 @@ else
   done
 fi
 
+if [[ -f .pre-commit-config.yaml ]] && git rev-parse --git-dir >/dev/null 2>&1; then
+  hook=$(git rev-parse --git-path hooks/pre-commit)
+  [[ -x "$hook" ]] || notes+=("pre-commit не установлен: секреты и линт не проверяются при коммите; выполни uvx pre-commit install")
+fi
+
 if [[ -n "${PYTHONPATH:-}" ]]; then
   notes+=("задан PYTHONPATH=$PYTHONPATH: он подмешивается в venv и может ломать pytest; команды запускай через env -u PYTHONPATH")
 fi

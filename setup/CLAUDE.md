@@ -19,6 +19,7 @@ uv sync                                         # installs dev + notebooks group
 uv run pytest -q                                # offline, ~13 s; tests/ and dwh-analyst-mcp/tests/
 uv run pytest tests/test_loop.py::test_name -q  # single test
 uv run ruff check .                             # errors only (F, E9); no formatter
+scripts/agent/test-hooks.sh                     # tests of the hooks themselves, ~4 s; run after editing them
 uv run pytest eval -m live                      # playbook regression against the live DWH — ask first
 
 # Offline demo: no API key, no DWH, no docker (SQLite + scripted model, frozen date)
@@ -95,7 +96,7 @@ Package map: `harness/README.md`.
   (run `harness.cli seed-demo` once).
 - Hooks (`.claude/settings.json`, scripts in `scripts/agent/`): at startup a doctor reports a broken setup; a guard
   blocks secret files and dangerous commands and fails closed; after edits ruff and layer checks run; on stop the
-  offline tests run if files they depend on changed.
+  offline tests run if files they depend on changed. Outside the session: pre-commit (gitleaks, lint) and CI.
 
 ## Rules (`.claude/rules/`)
 
