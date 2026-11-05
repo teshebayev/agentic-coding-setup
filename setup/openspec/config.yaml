@@ -1,0 +1,88 @@
+schema: spec-driven
+
+context: |
+  Language: ru
+  All artifacts must be written in ru.
+  Keep OpenSpec structural headings and SHALL/MUST keywords in English.
+
+  # DWH-аналитик — агентный харнесс над хранилищем данных
+
+  ## Домен
+  Менеджеры склада (WMS, 1С) задают вопросы о данных в LibreChat. Модель пишет SQL, харнесс проверяет его,
+  выполняет read-only через MCP-сервер и проверяет финальный ответ (числа — только из run_sql, период — по
+  календарным границам в часовом поясе Asia/Tashkent).
+
+  ## Стек
+  - Python 3.12, uv workspace: корневой пакет `harness` + член `dwh-analyst-mcp/` (отдельный процесс, stdio)
+  - FastAPI (OpenAI-совместимый /v1/chat/completions для LibreChat), CLI `python -m harness.cli`
+  - Хранилище: Postgres + MinIO (основной профиль) или SQLite + файлы (демо, тесты); схема — alembic,
+    миграции пишутся руками, рантайм на sqlite3/psycopg напрямую
+  - LLM через OpenRouter; Langfuse — трейсы ходов
+  - pytest, тесты полностью офлайн на SQLite (≈13 с); `eval -m live` — регрессия плейбуков на живом DWH
+
+  ## Ключевые инварианты
+  - Всё поведение — плагины (`register(ctx)`: хуки, секции промпта, инструменты, сервисы). Какие плагины
+    активны, решает конфиг; слои `base.yml → dwh.yml → local.yml` сливаются глубоко, но списки заменяются
+    целиком — новый плагин добавляется во все слои, где есть `plugins:`.
+  - Event log — единственный источник истины, только append (`SessionLog.append`). История модели не
+    хранится, а пересобирается из событий; `build_request` — чистая функция, `request_hash` проверяется
+    `harness.cli verify`. Старые логи должны оставаться воспроизводимыми.
+  - DWH — только через MCP; `harness/` не импортирует `dwh_analyst_mcp`. run_sql без validate_sql запрещён.
+  - Код хранилища работает в обоих профилях.
+  - Знание (`dwh-knowledge/`: карточки таблиц, плейбуки, conventions/traps) растёт только через ревью
+    аналитика; агент-харнесс туда не пишет.
+  - Документация, комментарии, коммиты — на русском. У каждого модуля README.md (как работает) и
+    STATUS.md (сделано / осталось); `dwh-analyst-harness-architecture.md` — целевая спека, `docs/NN-*.md` —
+    описание кода как есть, `TODO.md` — индекс отложенного.
+
+rules:
+  proposal:
+    - Если перед propose в этой сессии шёл /grill-with-docs или /opsx:explore — перенеси ВСЕ договорённости из диалога в Goals, Non-Goals, Requirements и Open Questions; ничего не оставляй только в разговоре
+    - Используй термины из GLOSSARY.md; бизнес-термины DWH — как в dwh-knowledge/conventions.md
+    - Обязательны Goals, Non-Goals, Requirements (FR/NFR с ID), Success Metrics
+    - |
+      Структура proposal:
+        ## Why — проблема, кто страдает, почему сейчас
+        ## What Changes — ADDED/MODIFIED/REMOVED возможности
+        ## Goals — G1, G2... (измеримые)
+        ## Non-Goals — NG1, NG2... (явно вне рамок)
+        ## Users & Scenarios — U1, U2... (менеджер в LibreChat, аналитик в CLI, admin)
+        ## Requirements
+        ### Functional — FR1, FR2...
+        ### Non-Functional — только применимые:
+          NFR-S (безопасность: read-only, ПДн, группы доступа, секреты),
+          NFR-RP (совместимость replay: старые логи воспроизводятся, request_hash стабилен),
+          NFR-C (стоимость: токены, кэш префикса промпта, бюджеты секций),
+          NFR-P (производительность: время хода, тяжесть SQL)
+        ## Матрица профилей — если изменение затрагивает хранилище, MCP или запуск:
+          | Хранилище (SQLite / Postgres) | DWH (demo / live) | Вход (CLI / API / LibreChat) | Ожидаемое поведение |
+        ## Success Metrics — M1, M2... (конкретные числа: тесты, стоимость хода, доля верных ответов)
+        ## Open Questions — Q1, Q2...
+    - Proposal описывает ЧТО и ЗАЧЕМ; КАК — в design.md
+  design:
+    - Только для нетривиальных локальных решений этого изменения; ссылайся на FR/NFR из proposal
+    - Глобальные архитектурные решения — в docs/adr/ (формат .claude/rules/adr.md)
+    - Если меняются payload событий или сборка запроса — опиши, как старые логи остаются воспроизводимыми
+  tasks:
+    - Порядок слоёв — MCP-сервер и знание → core → плагины и конфиги → API/CLI → документация
+    - Каждая задача ссылается на FR/NFR, которые реализует, например (FR2)
+    - Тесты — pytest офлайн; для каждого FR/NFR хотя бы один автоматический тест; ручных проверок нет, кроме явно недоступного офлайн (живой DWH — пометить и согласовать с пользователем)
+    - Если затронуты harness/core или harness/context — задача на `harness.cli verify` по демо-сессии
+    - Последняя группа задач обязательна — «Документация» — README.md/STATUS.md затронутых модулей, docs/NN-*.md, TODO.md
+    - Блоки задач по ≤2 часа
+  specs:
+    - Дельта-формат ADDED/MODIFIED/REMOVED
+    - Каждый инвариант и сценарий помечай `# реализует FRn из <change-name>`
+
+operations:
+  apply:
+    guidance:
+      - Пиши код как окружающий — плотность комментариев, именование, идиомы; комментарии и docstring на русском
+      - Перед правкой поведения без теста — характеризационный тест (.claude/rules/tdd-workflow.md)
+      - После каждой группы задач — `uv run pytest -q`; живой DWH (`-m live`, `marts apply`) — только с разрешения пользователя
+      - Если менялись harness/core или harness/context — перед завершением вызови субагента replay-reviewer
+      - Не коммить, пока пользователь не попросил
+  archive:
+    guidance:
+      - Перед архивом проверь, что группа «Документация» в tasks.md выполнена и README.md/STATUS.md затронутых модулей обновлены
+      - После архива предложи коммит с русским заголовком; в теле — зачем и что проверено, с числом тестов

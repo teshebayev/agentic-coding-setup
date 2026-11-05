@@ -1,0 +1,8 @@
+# --- Агентная разработка (влить в свой .gitignore, а не заменять его) ---
+# Чек-лист незакоммиченных файлов (/uncommitted-files), рабочий, не для коммита.
+/uncommitted-files.md
+# Личные настройки Claude Code: отключённые хуки и MCP-серверы, локальные права.
+.claude/settings.local.json
+# Секреты и реальные данные — те же пути, что запрещает scripts/agent/guard.sh.
+.env
+/ACCESS.local.md

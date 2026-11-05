@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "dwh-analyst": {
+      "command": "uv",
+      "args": ["run", "--quiet", "python", "-m", "dwh_analyst_mcp.server"],
+      "env": {
+        "DWH_DIALECT": "sqlite",
+        "DWH_DSN": "data/demo_dwh.sqlite",
+        "DWH_KNOWLEDGE_PATH": "dwh-analyst-mcp/demo/knowledge",
+        "DWH_EXPLAIN_COST_THRESHOLD": ""
+      }
+    }
+  }
+}
